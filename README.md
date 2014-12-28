@@ -1,7 +1,7 @@
-Solutions for the excercises in Richard Bird's book "Introduction to functional
-programming using haskell".
+Solutions to exercises in Richard Bird's book "Introduction to functional
+programming using Haskell".
 
-I'll be adding as I get to solve them. I'm learning in the process so don't
+I'll be adding more as I get to solve them. I'm learning in the process so don't
 assume everything is correct. Any criticism, corrections or possible solutions
 are always welcome :)
 
