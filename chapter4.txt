@@ -9,17 +9,17 @@ instance (Ord a) => Ord [a] where
 
 4.1.3)
 Using last' on any list of elements whose type is not an instance of Eq fails.
-For example: last [sin] == sin; but last' [sin] == bottom
+For example: last [sin] = sin; but last' [sin] = ⊥
 
 4.1.4)
-head (x:xs) = x         or         head (Cons x xs) = x
+head (x:xs) = x         or alternatively,         head (Cons x xs) = x
 head' (Snoc xs x) = if xs == Nil then x else head' xs
 
 convert Nil         = []
 convert (Snoc xs x) = convert xs ++ [x]
 
 4.2.1)
-[]:xs = xs                false
+[]:xs = xs                false, if xs = [[1]], then []:xs = [[],[1]]
 []:xs = [[], xs]          false, if xs = [], then []:xs =[[]]
 xs:[] = xs                false, if xs = [1], [1]:[] = [[1]]
 xs:[] = [xs]              true
@@ -269,8 +269,13 @@ Both (:) and (++) are infixr 5 operators, making both sides equal and
 establishing the case.
                                                                     ∎
 
-4.3.5)
-map (map f) . inits = inits . map f
+4.3.5) The naturality condition for inits is:
+        map (map f) . inits = inits . map f
+Following the explanations in the book and looking at the examples,
+particularly the concat one which has a similar, albeit inverse, type, it can
+be guessed.
+Another way of reaching to the result is looking for the free theorem of the
+[a] -> [[a]] type, which is exactly the naturality condition.
 
 4.3.6)
 filter p = concat . map box
@@ -288,3 +293,62 @@ takeWhile p [] = []
 takeWhile p (x:xs) = if p x
                         then x:takeWhile' p xs
                         else []
+
+4.3.8) Let's suppose that xs is a finite list of size m, and ys is another
+       finite list of size n. Then we have
+
+                          y1 ... yn y1 ... yn ... y1 ... ym
+[x | x <- xs, y <- ys] = [x1,...,x1,x2,...,x2,...,xm,...,xm]
+
+[x | y <- ys, x <- xs] = [x1,...,xm,x1,...,xm,...,x1,...,xm]
+                          y1 ... y1 y2 ... y2 ... yn ... yn
+
+It's easy to see that for both of them to be equal, x1 = x2 = ... = xm
+
+4.3.9)
+pairs n = [(x,y) | x <- [1..n], y <- [1..n]]
+
+4.3.10)
+quadruples n = [(a,b,c,d) | a <- [1..n], b <- [a..n], c <-[a..n],
+d <- [c..n], a*a + b*b == c*c + d*d, a /= c && a /= d && a /= b]
+
+4.3.11)
+   [(x, y) | x <- [1..n], odd x, y <- [1..n]]
+   concat [[(x,y) | y <- [1 .. n]] | x <- [1 .. n], odd x]]
+   concat [map (\y -> (x,y)) [1 .. n] | x <- [1 .. n], odd x]
+   concat (map (\x -> map (\y -> (x,y)) [1 .. n]) (filter odd [1 .. n]))
+
+   [(x, y) | x <- [1..n], y <- [1..n], odd x]
+   concat [[(x,y) | x <- [1 .. n]] | y <- [1 .. n], odd x]]
+   concat [map (\x -> (x,y)) [1 .. n] | y <- [1 .. n], odd x]
+   concat [map (\y -> map (\x -> (x,y)) (filter odd [1 .. n])) [1 .. n])
+
+4.4.1) unzip :: [(a,b)] -> ([a], [b])
+So unzip [⊥] doesn't typecheck.
+unzip [(⊥, ⊥)] on the other hand, loops endlessly.
+
+(TODO: solution taken from haskell's irc logs, try to fully understand it)
+xys = (1,2):undefined:[]
+zipp (unzip xys) = (1,2):undefined
+
+4.4.2) TODO
+4.4.3) TODO
+
+4.5.1) filter p = foldr f []
+         where f x xs = if p x then x:xs else xs
+
+4.5.2) takeWhile = foldr f []
+        where f x xs = if p x then x:xs else []
+It's not possible to define dropWhile in terms of fold directly. It can be done
+indirectly though, using the more general function:
+       dropWhile' :: (a -> Bool) -> [a] -> ([a], [a])
+       dropWhile' p xs = (dropWhile p xs, xs)
+Eventually reaching to:
+    dropWhile p = fst . foldr f ([],[])
+        where f x (ys, xs) = (if p x then ys else x:xs, x:xs)
+For the details, read Graham Hutton's paper "A tutorial on the universality and
+expressiveness of fold", in particular section 4.
+
+4.5.3) Only the foldl equation is true:
+       foldl (-) x xs = (((x - x1) - x2) - ...) = x - sum xs
+       foldr (-) x xs = x - (x1 - (x2 - (...)))
