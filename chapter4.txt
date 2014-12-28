@@ -1,0 +1,290 @@
+4.1.1)
+[1] == [True] (remember that's syntactic sugar for (1:[] == True:[]) )
+
+4.1.2)
+instance (Ord a) => Ord [a] where
+ [] <= _          = True
+ xs <= []         = null xs
+ (x:xs) <= (y:ys) = (x < y) || (x == y && xs <= ys)
+
+4.1.3)
+Using last' on any list of elements whose type is not an instance of Eq fails.
+For example: last [sin] == sin; but last' [sin] == bottom
+
+4.1.4)
+head (x:xs) = x         or         head (Cons x xs) = x
+head' (Snoc xs x) = if xs == Nil then x else head' xs
+
+convert Nil         = []
+convert (Snoc xs x) = convert xs ++ [x]
+
+4.2.1)
+[]:xs = xs                false
+[]:xs = [[], xs]          false, if xs = [], then []:xs =[[]]
+xs:[] = xs                false, if xs = [1], [1]:[] = [[1]]
+xs:[] = [xs]              true
+xs:xs = [xs, xs]          false
+
+4.2.2)
+[[]] ++ xs   = xs         false
+[[]] ++ xs   = [xs]       false
+[[]] ++ xs   = [[], xs]   false
+[[]] ++ [xs] = [[], xs]   true
+[xs] ++ []   = [xs]       true, [] is the unit of (++)
+[xs] ++ [xs] = [xs, xs]   true
+
+4.2.3) xs ++ [] = xs
+Proof by induction on xs
+Case(⊥). For the left-hand side we reason
+            ⊥ ++ []
+    = {case exhaustion}
+            ⊥
+         Which equals the right-hand side, establishing the case.
+Case([]). For the left-hand side we reason
+            [] ++ []
+    = {first equation for ++}
+            []
+         Which equals the right-hand side, establishing the case.
+Case((x:xs)) For the left-hand side we reason
+            (x:xs) ++ []
+    = {second equation for ++}
+            x:(xs ++ [])
+    = {induction hypothesis}
+            x:xs
+         Which equals the right-hand side, establishing the case.
+                                                                    ∎
+4.2.4) concat (xss ++ yss) = concat xss ++ concat yss
+Proof by induction on xss.
+Case(⊥). For the left-hand side we reason
+            concat(⊥ ++ yss)
+    = {case exhaustion}
+            concat ⊥
+    = {case exhaustion}
+            ⊥
+         For the right-hand side
+            concat ⊥ ++ concat yss
+    = {case exhaustion}
+            ⊥ ++ concat yss
+    = {case exhaustion}
+            ⊥
+            Both sides are equal, establishing the case.
+Case([]). For the left-hand side we reason
+            concat([] ++ yss)
+    = {first equation for ++}
+            concat yss
+         For the right-hand side
+            concat [] ++ concat yss
+    = {first equation for concat}
+            [] ++ concat yss
+    = {first equation for ++}
+            concat yss
+            Both sides are equal, establishing the case.
+Case(x:xs) For the left-hand side we reason
+            concat((xs:xss) ++ yss)
+    = {second equation for ++}
+            concat (xs:(xss ++ yss))
+    = {second equation for concat}
+            xs ++ concat (xss ++ yss))
+    = {induction hypothesis}
+            xs ++ concat xss ++ concat yss
+    = {second equation for concat}
+            concat (xs:xss) ++ concat yss
+            Which equals the right-hand side, establishing the case.
+                                                                    ∎
+
+4.2.5) length (xs ++ ys) = length xs + length ys
+Proof by induction on xs.
+Case(⊥). For the left-hand side we reason
+            length (⊥ ++ ys)
+    = {case exhaustion}
+            length ⊥
+    = {case exhaustion}
+            ⊥
+         For the right-hand side
+            length ⊥ + length ys
+    = {case exhaustion}
+            ⊥ + length ys
+    = {(+) is strict}
+            ⊥
+            Both sides are equal, establishing the case.
+Case([]). For the left-hand side we reason
+            length ([] ++ ys)
+    = {first equation for ++}
+            length ys
+          For the right-hand side
+            length [] + length ys
+    = {first equation for length}
+            0 + length ys
+    = {0 is the unit for (+)}
+            length ys
+Case(x:xs) For the left-hand side we reason
+            length ((x:xs) ++ ys)
+    = {second equation for ++}
+            length (x:(xs ++ ys)
+    = {second equation for length}
+            1 + length (xs ++ ys)
+    = {induction hypothesis}
+            1 + length xs + length ys
+           For the right-hand side
+            length (x:xs) + length ys
+    = {second equation for length}
+            1 + length xs + length ys
+            Which equals what we reached at on the left-hand side,
+            establishing the case.
+                                                                    ∎
+4.2.6) reverse xs = ⊥ for all infinite lists
+Proof by partial induction on xs
+Case(⊥). For the left-hand side we reason
+            reverse ⊥
+    = {case exhaustion}
+            ⊥
+            Which equals the right-hand side, establishing the case.
+Case(x:xs). For the left-hand side we reason
+            reverse (x:xs)
+    = {second equation for reverse}
+            reverse xs ++ [x]
+    = {induction hypothesis}
+            ⊥ ++ [x]
+    = {case exhaustion}
+            ⊥
+            Which equals the right-hand side, establishing the case.
+                                                                    ∎
+
+init xs = ⊥ for all infinite lists
+Proof by partial induction on xs
+Case(⊥). For the left-hand side we reason
+            init ⊥
+    = {definition of init}
+            (reverse . tail . reverse) ⊥
+    = {definition of (.), twice}
+            reverse (tail (reverse ⊥))
+    = {case exhaustion for reverse, tail, and reverse again}
+            ⊥
+            Which equals the right-hand side, establishing the case.
+Case(x:xs). For the left-hand side we reason
+            init (x:xs)
+    = {definition of init}
+            (reverse . tail . reverse) (x:xs)
+    = {definition of (.), twice}
+            reverse (tail (reverse (x:xs)))
+    = {second equation for reverse}
+            reverse (tail (reverse xs ++ [x])))
+    = {reverse xs = ⊥ for all infinite lists, as previously proved}
+            reverse (tail (⊥ ++ [x])))
+    = {case exhaustion}
+            reverse (tail ⊥ ))
+    = {case exhaustion}
+            reverse ⊥
+    = {case exhaustion}
+            ⊥
+            Which equals the right-hand side, establishing the case.
+                                                                    ∎
+
+4.2.7) ?? TODO
+
+4.2.8) rev2 [] = []
+       rev2 (x:[]) = x:[]
+       rev2 (x:y:[]) = y:x:[]
+       rev2 (x:y:z:zs) = x:y:z:zs
+
+4.2.9) Either one fo the two lists is the empty list [], or one has to be a
+prefix of the other, and the longer one (if xs /= ys) has to be made of
+complete repetitions of that prefix.
+
+4.2.10) ⊥ (bottom)
+
+4.2.11) Yes, it's pretty intuitive (TODO prove it!)
+
+4.2.12) TODO
+
+4.2.13) The easiest way is probably converting them to a Haskell list and
+delegating the comparisons.
+data Catlist a = Nil
+               | Wrap a
+               | Cat (Catlist a) (Catlist a)
+               deriving Show
+
+convert Nil = []
+convert (Wrap a) = [a]
+convert (Cat a b) = convert a ++ convert b
+
+instance (Eq a) => Eq (Catlist a) where
+  a == b = convert a == convert b
+instance (Ord a) => Ord (Catlist a) where
+  a <= b = convert a <= convert b
+
+4.3.1)
+map (map square) [[1,2], [3,4,5]] evaluates to [[1,4], [9,16,25]]
+
+4.3.2)
+map f ⊥  = ⊥    Since it has to apply f to every element of the list, even
+                if f isn't strict, the computation doesn't end. One example
+                is map (+1) [1..]
+map ⊥ [] = []   The function is never applied, therefore never evaluated,
+                giving the empty list, according to the first equation of map
+                Example: map infinity [], where infinity x = x + infinity x
+
+4.3.3) Remember that map :: (a -> b) -> [a] -> [b]
+       Then:
+       map map :: [a -> b] -> [[a] -> [b]]
+
+4.3.4) map f (xs ++ ys) = map f xs ++ map f ys
+Proof by induction on xs
+Case(⊥). For the left-hand side we reason
+            map f (⊥ ++ ys)
+    = {case exhaustion}
+            ⊥
+         For the right-hand side
+            map f ⊥ ++ map f ys
+    = {case exhaustion}
+            ⊥ ++ map f ys
+    = {case exhaustion}
+            ⊥
+            Both sides are equal, establishing the case.
+Case([]). For the left-hand side we reason
+            map f ([] ++ ys)
+    = {first equation for ++}
+            map f ys
+          For the right-hand side
+            map f [] ++ map f ys
+    = {first equation for map}
+            [] ++ map f ys
+    = {first equation for ++}
+            map f ys
+            Both sides are equal, establishing the case.
+Case(x:xs). For the left-hand side we reason
+            map f ((x:xs) ++ ys)
+    = {second equation for ++}
+            map f (x:(xs ++ ys))
+    = {second equation for map}
+            f x : map f (xs ++ ys))
+    = {induction hypothesis}
+            f x : (map f xs ++ map f ys)
+            For the right-hand side
+            map f (x:xs) ++ map f ys
+    = {second equation for map}
+            (f x : map f xs) ++ map f ys
+
+Both (:) and (++) are infixr 5 operators, making both sides equal and
+establishing the case.
+                                                                    ∎
+
+4.3.5)
+map (map f) . inits = inits . map f
+
+4.3.6)
+filter p = concat . map box
+  where box x = if p x
+                   then [x]
+                   else []
+
+4.3.7)
+dropWhile p [] = []
+dropWhile p (x:xs) = if p x
+                        then dropWhile p xs
+                        else (x:xs)
+
+takeWhile p [] = []
+takeWhile p (x:xs) = if p x
+                        then x:takeWhile' p xs
+                        else []
