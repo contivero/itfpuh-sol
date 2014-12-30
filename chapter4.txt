@@ -309,10 +309,11 @@ It's easy to see that for both of them to be equal, x1 = x2 = ... = xm
 pairs n = [(x,y) | x <- [1..n], y <- [1..n]]
 
 4.3.10)
-quadruples n = [(a,b,c,d) | a <- [1..n], b <- [a..n], c <-[a..n],
-d <- [c..n], a*a + b*b == c*c + d*d, a /= c && a /= d && a /= b]
+quadruples n = [(a,b,c,d) | a <- [1..n], b <- [a..n],
+                            c <- [a+1..n], d <- [c..n],
+                            a^2 + b^2 == c^2 + d^2]
 
-4.3.11)
+4.3.11) TODO check this properly
    [(x, y) | x <- [1..n], odd x, y <- [1..n]]
    concat [[(x,y) | y <- [1 .. n]] | x <- [1 .. n], odd x]]
    concat [map (\y -> (x,y)) [1 .. n] | x <- [1 .. n], odd x]
@@ -352,3 +353,155 @@ expressiveness of fold", in particular section 4.
 4.5.3) Only the foldl equation is true:
        foldl (-) x xs = (((x - x1) - x2) - ...) = x - sum xs
        foldr (-) x xs = x - (x1 - (x2 - (...)))
+
+4.5.4) TODO review this proof, doesn't seem good!
+We prove that if xs is nondecreasing, then so is insert x xs, by
+induction on xs.
+
+Case([]).
+        [] has no elements, so it's nondecreasing.
+
+        insert x xs
+    = {definition}
+        takeWhile (<=x) [] ++ [x] ++ dropWhile (<=x) []
+    = {first equation for takeWhile}
+        [] ++ [x] ++ dropWhile (<=x) []
+    = {first equation for ++}
+        [x] ++ dropWhile (<=x) []
+    = {first equation for dropWhile}
+        [x] ++ []
+    = {ys ++ [] = ys, as proved in exercise 4.2.3}
+        [x]
+        Which is nondecreasing since it has only one element.
+Case(y:ys)
+        If y:ys was not nondecreasing, the implication would be trivially true,
+        so we analyze the case when it is nondecreasing.
+
+        takeWhile (<=x) (y:ys) ++ [x] ++ dropWhile (<=x) (y:ys)
+
+    Case(y <= x)
+    = {segunda ecuación de takeWhile, porque (y:ys) es no decreciente}
+        y:takeWhile (<=x) ys ++ [x] ++ dropWhile (<=x) y:ys
+    = {definción}
+        y:insert x ys
+
+    Por H.I., insert x ys es no decreciente. Además 'y' era el menor elemento
+    de (y:ys), por ser la cabeza de una lista no decreciente, e y <= x, con lo
+    que y:insert x ys es no decreciente.
+
+    Case(y > x)
+    = {second equation for takeWhile, because (y:ys) is nondecreasing}
+        [] ++ [x] ++ dropWhile (<=x) y:ys
+    = {first equation for ++}
+        [x] ++ dropWhile (<=x) y:ys
+    = {second equation for dropWhile, because (y:ys) is nondecreasing}
+        [x] ++ y:ys
+
+4.5.5) remdups :: (Eq a) => [a] -> [a]
+       remdups = foldl f []
+         where f [] x = [x]
+               f xs x = if x == last xs
+                           then xs
+                           else xs ++ [x]
+
+       remdups' :: (Eq a) => [a] -> [a]
+       remdups' [] = []
+       remdups' (x:xs) = foldr joinr [x] xs
+        where f x [] = [x]
+              f x xs = if x == head xs
+                          then xs
+                          else [x] ++ xs
+
+4.5.6) TODO
+
+4.5.7) scanl f e [] = [e]
+
+        scanl f e []
+    = {definition of scanl}
+        map (foldl f e) . inits []
+    = {definition of (.)}
+        map (foldl f e) (inits [])
+    = {first equation for inits}
+        map (foldl f e) [[]]
+    = {second equation for map}
+        foldl f e [] : map (foldl f e) []
+    = {first equation for foldl}
+        e : map (foldl f e) []
+    = {first equation for map}
+        e:[]
+    = {syntactic sugar}
+        [e]
+
+4.5.7) scanr = map (foldr f e) . tails
+The function f is applied k times on a list of length k in the evaluation of foldr.
+tails produces lists of length 0,1,...,n, so f is applied 0 + 1 + ... + n = [n*(n+1)]/2 times.
+In contrast, the more efficient version applies f n times to a list o length n.
+
+We take advantage of the problem to synthesize scanr, as it was left as an
+exercise by the author.
+
+Synthesis by an induction argument on xs.
+Case([]).
+        scanr f e []
+    = {definition of scanr}
+        map (foldr f e) . tails []
+    = {definition of (.)}
+        map (foldr f e) (tails [])
+    = {first equation for tails}
+        map (foldr f e) [[]]
+    = {second equation for map}
+        (foldr f e []) : map (foldr f e) [[]]
+    = {first equation for foldr}
+        e : map (foldr f e) []
+    = {first equation for map}
+        e:[]
+    = {syntactic sugar}
+        [e]
+
+Case(x:xs).
+        scanr f e (x:xs)
+    = {definition of scanr}
+        map (foldr f e) . tails (x:xs)
+    = {definition of (.)}
+        map (foldr f e) (tails (x:xs))
+    = {second equation for tails}
+        map (foldr f e) ((x:xs):tails xs)
+    = {second equation for map}
+        (foldr f e (x:xs)) : map (foldr f e) (tails xs)
+    = {second equation for foldr}
+        (f x (foldr f e xs)) : map (foldr f e) (tails xs)
+    = {definition of scanr}
+        (f x (foldr f e xs)) : scanr f e xs
+    = {claim: head (scanr f e xs) = foldr f e xs}
+        (f x (head (scanr f e xs))) : scanr f e xs
+
+Therefore, we have:
+scanr f e [] = [e]
+scanr f e (x:xs) = f x (head ys) : ys
+  where ys = scanr f e xs
+
+All we need now is to prove the claim:
+        head (scanr f e (x:xs))
+    = {definition of scanr}
+        head (map (foldr f e) (tails (x:xs)))
+    = {second equation for tails}
+        head (map (foldr f e) ((x:xs) : tails xs))
+    = {second equation for map}
+        head ((foldr f e (x:xs)) : map (foldr f e) tails xs)
+    = {definition of head}
+        foldr f e (x:xs)
+
+4.5.9)
+scanl (/) 1 [1..n] produces de list:
+[1.0, 1.0, (1/2), ((1/2)/3), (((1/2)/3)/4),...] = [1, 1, 1/2!, 1/3!, 1/4!,...,1/n!]
+
+4.5.10)
+We could use a fold on the previous result:
+    foldr (+) 0 (scanl (/) 1 [1..10])
+Changing the amount of terms on the list changes the accuracy.
+
+4.5.11)
+convert [] = Nil
+convert l@(_:_) = Snoc (convert (init l)) (last l)
+
+folde f e = foldl f e . convert
