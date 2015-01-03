@@ -501,7 +501,315 @@ We could use a fold on the previous result:
 Changing the amount of terms on the list changes the accuracy.
 
 4.5.11)
-convert [] = Nil
-convert l@(_:_) = Snoc (convert (init l)) (last l)
+convert was already done in exercise 4.1.4
+Proving folde f e = foldl f e . convert, by the principle of extensionality,
+is the same as proving that:
+    folde f e xs = (foldl f e . convert) xs
+We prove it by induction on xs.
 
-folde f e = foldl f e . convert
+Case(Nil). For the left-hand side we reason
+        folde f e Nil
+    = {first equation for folde}
+        e
+           For the right-hand side
+        (foldl f e . convert) Nil
+    = {definition of (.)}
+        foldl f e (convert Nil)
+    = {first equation for convert}
+        foldl f e []
+    = {first equation for foldl}
+        e
+Case(Snoc xs x). For the left-hand side we reason
+        folde f e (Snoc xs x)
+    = {first equation for foldl}
+        f (folde f e xs) x
+    = {induction hypothesis}
+        f (foldl f e (convert xs)) x
+
+        For the right-hand side
+        (foldl f e . convert) (Snoc xs x)
+    = {definition of (.)}
+        foldl f e (convert (Snoc xs x))
+    = {second equation for convert}
+        foldl f e (convert xs ++ [x])
+    = {second equation for convert}
+
+    TODO finish proof!
+
+4.5.12)
+scanr1 :: (a -> a -> a) -> [a] -> [a]
+scanr1 f = map (foldr1 f) . tails1
+By the principle of extensionality, this is equivalent to:
+scanr1 f xs = (map (foldr1 f) . tails1) xs
+
+Synthesis by an induction argument on xs.
+TODO
+
+4.6.1)
+foldr f e xs = foldl (flip f) e (reverse xs)
+Case(⊥). For the left-hand side we reason
+
+          foldr f e ⊥
+       =  {case exhaustion}
+          ⊥
+
+       For the right-hand side
+
+          foldl (flip f) e (reverse ⊥)
+       =  {case exhaustion}
+          foldl (flip f) e ⊥
+       =  {case exhaustion}
+          ⊥
+
+Case([]).
+        foldr f e []
+    = {first equation for foldr}
+        []
+
+        foldl (flip f) e (reverse [])
+    = {first equation for reverse}
+        foldl (flip f) e []
+    = {first equation for foldl}
+        []
+
+Case(x:xs). For the left-hand side we reason
+        foldr f e (x:xs)
+    = {second equation for foldr}
+        f x (foldr f e xs))
+    = {induction hypothesis}
+        f x (foldl (flip f) e (reverse xs))
+    = {definition of flip}
+        (flip f) (foldl (flip f) e (reverse xs)) x
+
+        For the right-hand side
+        foldl (flip f) e (reverse (x:xs))
+    = {second equation for reverse}
+        foldl (flip f) e (reverse xs ++ [x])
+    = {proved in 4.6.4: foldl g e (ys ++ zs) = foldl g (foldl g e ys) zs}
+        foldl (flip f) (foldl (flip f) e (reverse xs)) [x]
+    = {second equation for foldl}
+        foldl (flip f) ((flip f) (foldl (flip f) e (reverse xs)) x) []
+    = {first equation for foldl}
+        (flip f) (foldl (flip f) e (reverse xs)) x
+
+        Which equals the left-hand side, establishing the case.
+
+4.6.2)
+If f is strict, f a = b, and f (g x y) = h x (f y) for all x and y, then:
+    f . foldr g a = foldr h b
+By the extensionality principle, we prove the equivalent law:
+    (f . foldr g a) xs = foldr h b xs
+By induction on xs.
+
+Case(⊥). For the left-hand side we reason
+        f . foldr g a ⊥
+    = {definition of (.)}
+        f (foldr g a ⊥)
+    = {case exhaustion for foldr}
+        f ⊥
+    = {f is strict}
+        ⊥
+
+        For the right-hand side
+        foldr h b ⊥
+    = {case exhaustion for foldr}
+        ⊥
+
+Case([]). For the left-hand side we reason
+        f . foldr g a []
+    = {definition of (.)}
+        f (foldr g a [])
+    = {foldr.1}
+        f a
+
+        For the right-hand side we reason
+        foldr h b []
+    = {foldr.1}
+        b
+
+Case(x:xs). For the left-hand side we reason
+        f . foldr g a (x:xs)
+    = {definition of (.)}
+        f (foldr g a (x:xs))
+    = {foldr.2}
+        f (g x (foldr g a xs))
+    = {generalizing foldr g a xs = y}
+        f (g x y)
+
+        For the right-hand side
+        foldr h b (x:xs)
+    = {foldr.2}
+        h x (foldr h b xs)
+    = {induction hypothesis}
+        h x (f (foldr g a xs))
+    = {generalizing foldr g a xs = y}
+        h x (f y)
+                                                                    ∎
+
+4.6.3)
+If f is strict, f a = b, and f (g x y) = h (f x) y for all x and y, then:
+    f . foldl g a = foldl h b
+By the extensionality principle, we prove the equivalent law:
+    (f . foldl g a) xs = foldl h b xs
+By induction on xs.
+
+Case(⊥). For the left-hand side we reason
+        (f . foldl g a) ⊥
+    = {definition of (.)}
+        f (foldl g a ⊥)
+    = {case exhaustion for ⊥}
+        f ⊥
+    = {f is strict}
+        ⊥
+
+        For the right-hand side
+        foldl h b ⊥
+    = {case exhaustion for foldl}
+        ⊥
+
+Case([]). For the left-hand side we reason
+        f (foldl g a [])
+    = {foldl.1}
+        f a
+
+        For the right-hand side
+        foldl h b []
+    = {foldl.1}
+        b
+
+Case(x:xs). For the left-hand side we reason
+        f (foldl g a (x:xs))
+    = {foldl.2}
+        f (foldl g (g a x) xs)
+
+        For the right-hand side
+        foldl h b (x:xs)
+    = {foldl.2}
+        foldl h (h b x) xs
+    = {f a = b}
+        foldl h (h (f a) x) xs
+
+We need to prove that the left-hand and right-hand sides are equal, which means
+proving that:
+    f (foldl g (g x y) zs) = foldl h (h (f x) y) zs
+for all x, y, and all lists zs.
+Proof by induction on zs.
+
+Case(⊥). For the left-hand side we reason
+        f (foldl g (g x y) ⊥)
+    = {case exhaustion}
+        f ⊥
+    = {f is strict}
+
+        For the right-hand side
+        foldl h (h (f x) y) ⊥
+    = {case exhaustion}
+        ⊥
+
+Case([]). For the left-hand side we reason
+        f (foldl g (g x y) [])
+    = {foldl.1}
+        f (g x y)
+
+        For the right-hand side
+        foldl h (h (f x) y) []
+    = {foldl.1}
+        h (f x) y
+
+Case(z:zs). For the left-hand side we reason
+        f (foldl g (g x y) (z:zs))
+    = {foldl.2}
+        f (foldl g (g (g x y) z) zs)
+    = {induction hypothesis}
+        foldl h (h (f (g x y) z)) zs
+    = {initial assumption: f (g x y) = h (f x) y}
+        foldl h (h (h (f x) y) z) zs
+
+        For the right-hand side
+        foldl h (h (f x) y) (z:zs)
+    = {foldl.2}
+        foldl h (h (h (f x) y) z) zs
+                                                                    ∎
+
+4.6.4)
+    foldr g e (xs ++ ys) = foldr g (foldr g e xs) ys
+
+Proof by induction on xs.
+Case(⊥). For the left-hand side we reason
+        foldr g e (⊥ ++ ys)
+    = {case exhaustion for ++}
+        foldr g e ⊥
+    = {case exhaustion}
+        ⊥
+
+        For the right-hand side
+        foldr g (foldr g e ⊥) ys
+    = {case exhaustion}
+        foldr g ⊥ ys
+
+        ?? TODO ??
+
+Case([]). For the left-hand side we reason
+        foldr g e ([] ++ ys)
+    = {(++).1}
+        foldr g e ys
+
+        For the right-hand side
+        foldr g (foldr g e []) ys
+    = {foldr.1}
+        foldr g e ys
+
+Case(x:xs). For the left-hand side we reason
+        foldr g e ((x:xs) ++ ys)
+    = {(++).2}
+        foldr g e (x:(xs ++ ys))
+    = {foldr.2}
+        g x (foldr g e (xs ++ ys)
+    = {induction hypothesis}
+        g x (foldr g (foldr g e xs) ys)
+
+        For the right-hand side
+        foldr g (foldr g e (x:xs)) ys
+    = {foldr.2}
+        foldr g (g x (foldr g e xs)) ys
+        ?? TODO ??
+                                                                    ∎
+
+    foldl g e (xs ++ ys) = foldl g (foldl g e xs) ys
+
+Proof by induction on xs.
+Case(⊥). For the left-hand side we reason
+        foldl g e (⊥ ++ ys)
+    = {case exhaustion for ++}
+        foldl g e ⊥
+    = {case exhaustion for foldl}
+        ⊥
+
+        For the right-hand side
+        foldl g (foldl g e ⊥) ys
+    = {case exhaustion for foldl}
+        foldl g ⊥ ys
+
+        ?? TODO ??
+
+Case([]). For the left-hand side we reason
+        foldl g e ([] ++ ys)
+    = {first equation for ++}
+        foldl g e ys
+
+        For the right-hand side
+        foldl g (foldl g e []) ys
+    = {first equation for foldl}
+        foldl g e ys
+
+Case(x:xs). For the left-hand side we reason
+        foldl g e ((x:xs) ++ ys)
+    = {second equation for ++}
+        foldl g e (x:(xs ++ ys))
+    = {second equation for foldl}
+        foldl g (g e x) (xs ++ ys))
+    = {induction hypothesis}
+        foldl g (foldl g (g e x) xs)) ys
+    = {second equation for foldl}
+        foldl g (foldl g e (x:xs)) ys
+                                                                    ∎
