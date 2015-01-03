@@ -1,0 +1,26 @@
+5.1.1)
+convert6 n = combine6 (digits6 n) ++ "."
+
+5.1.2)
+convert9 :: Int -> String
+convert9 = combine9 . digits9
+
+digits9 :: Int -> (Int, Int)
+digits9 n = (n `div` 1000000, n `mod` 1000000)
+
+combine9 :: (Int, Int) -> String
+combine9 (0, h) = convert6 h
+combine9 (m, 0) = convert6 m ++ " millon"
+combine9 (m, h) = convert6 m ++ " millon" ++ link h ++ convert6 h
+
+convert12 :: Int -> String
+convert12 = combine12 . digits12
+
+digits12 :: Int -> (Int, Int)
+digits12 n = (n `div` 1000000000, n `mod` 1000000000)
+
+combine12 :: (Int, Int) -> String
+combine12 (0, h) = convert9 h
+combine12 (m, 0) = convert9 m ++ " billon"
+combine12 (m, h) = convert9 m ++ " billon" ++ link h ++ convert9 h
+

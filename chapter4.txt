@@ -847,3 +847,11 @@ scanl can be defined in terms of foldl without the need of any assumptions:
 
 4.6.6)
     TODO
+4.6.7)
+    TODO
+4.6.8)
+    TODO
+4.6.9)
+    TODO
+4.6.10)
+    TODO
