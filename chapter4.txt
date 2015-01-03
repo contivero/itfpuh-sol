@@ -732,9 +732,9 @@ Case(z:zs). For the left-hand side we reason
                                                                     ∎
 
 4.6.4)
-    foldr g e (xs ++ ys) = foldr g (foldr g e xs) ys
-
-Proof by induction on xs.
+Proof that:
+    foldr g e (xs ++ ys) = foldr g (foldr g e ys) xs
+by induction on xs.
 Case(⊥). For the left-hand side we reason
         foldr g e (⊥ ++ ys)
     = {case exhaustion for ++}
@@ -743,11 +743,9 @@ Case(⊥). For the left-hand side we reason
         ⊥
 
         For the right-hand side
-        foldr g (foldr g e ⊥) ys
+        foldr g (foldr g e ys) ⊥
     = {case exhaustion}
-        foldr g ⊥ ys
-
-        ?? TODO ??
+        ⊥
 
 Case([]). For the left-hand side we reason
         foldr g e ([] ++ ys)
@@ -755,7 +753,7 @@ Case([]). For the left-hand side we reason
         foldr g e ys
 
         For the right-hand side
-        foldr g (foldr g e []) ys
+        foldr g (foldr g e ys) []
     = {foldr.1}
         foldr g e ys
 
@@ -764,34 +762,20 @@ Case(x:xs). For the left-hand side we reason
     = {(++).2}
         foldr g e (x:(xs ++ ys))
     = {foldr.2}
-        g x (foldr g e (xs ++ ys)
+        g x (foldr g e (xs ++ ys))
     = {induction hypothesis}
-        g x (foldr g (foldr g e xs) ys)
+        g x (foldr g (foldr g e ys) xs)
 
         For the right-hand side
-        foldr g (foldr g e (x:xs)) ys
+        foldr g (foldr g e ys) (x:xs)
     = {foldr.2}
-        foldr g (g x (foldr g e xs)) ys
-        ?? TODO ??
+        g x (foldr g (foldr g e ys) xs)
                                                                     ∎
 
+
+Proof that:
     foldl g e (xs ++ ys) = foldl g (foldl g e xs) ys
-
-Proof by induction on xs.
-Case(⊥). For the left-hand side we reason
-        foldl g e (⊥ ++ ys)
-    = {case exhaustion for ++}
-        foldl g e ⊥
-    = {case exhaustion for foldl}
-        ⊥
-
-        For the right-hand side
-        foldl g (foldl g e ⊥) ys
-    = {case exhaustion for foldl}
-        foldl g ⊥ ys
-
-        ?? TODO ??
-
+by induction on xs.
 Case([]). For the left-hand side we reason
         foldl g e ([] ++ ys)
     = {first equation for ++}
@@ -804,12 +788,62 @@ Case([]). For the left-hand side we reason
 
 Case(x:xs). For the left-hand side we reason
         foldl g e ((x:xs) ++ ys)
-    = {second equation for ++}
+    = {(++).2}
         foldl g e (x:(xs ++ ys))
-    = {second equation for foldl}
+    = {foldl.2}
         foldl g (g e x) (xs ++ ys))
     = {induction hypothesis}
         foldl g (foldl g (g e x) xs)) ys
-    = {second equation for foldl}
+    = {foldl.2}
         foldl g (foldl g e (x:xs)) ys
                                                                     ∎
+
+If g is a non-strict function, xs must be a finite list. For example:
+
+Prelude> let g _ = (2+)
+Prelude> foldl g 3 ((1:2:undefined) ++ [5..10])
+*** Exception: Prelude.undefined
+Prelude> foldl g (foldl g 3 (1:2:undefined)) [5..10]
+12
+
+4.6.5)
+scanl f e = foldr g [e]
+    where g y ys = e : map (f y) ys
+By the principle of extensionality, this is equivalent to:
+    scanl f e xs = foldr g [e] xs
+        where g y ys = e : map (f y) ys
+
+We prove this equality by induction on xs.
+Case([]). For the left-hand side we reason
+        scanl f e []
+    = {scanl.1}
+        [e]
+
+        For the right-hand side
+        foldr g [e] []
+    = {foldr.1}
+        [e]
+
+Case(x:xs). For the left-hand side we reason
+        scanl f e (x:xs)
+    = {scanl.2}
+        e : scanl f (f e x) xs
+    = {f has unit e}
+        e : scanl f x xs
+    = {induction hypothesis}
+        e : foldr g [x] xs
+
+        For the right-hand side
+        foldr g [e] (x:xs)
+    = {foldr.2}
+        g x (foldr g [e] xs)
+    = {definition of g}
+        e : map (f x) (foldr g [e] xs)
+    = {definition of map}
+        e : foldr ((:) . (f x)) [] (foldr g [e] xs)
+
+scanl can be defined in terms of foldl without the need of any assumptions:
+    scanl f e = foldl (\xs next -> xs ++ [f (last xs) next]) [e]
+
+4.6.6)
+    TODO
