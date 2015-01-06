@@ -1,0 +1,100 @@
+6.1.1) The different ways to build a binary tree of size n+1 is given by the
+       nth catalan number. The following implementation if far from efficient,
+       but it gets the job done.
+
+treesOfSize :: Integral a => a -> a
+treesOfSize 0 = 0
+treesOfSize x = catalan (x-1)
+  where catalan n = (comb (2*n) n) `div` (n+1)
+        combination a b = (factorial a) `div` (factorial b * (factorial (a - b)))
+        factorial n = product [1..n]
+
+6.1.2) size xt = 1 + nodes xt
+
+Proof by induction on xt.
+Case(Leaf x).
+        size (Leaf x)
+    = {size.1}
+        1
+
+        1 + nodes (Leaf x)
+    = {nodes.1}
+        1 + 0
+    = {0 is the unit of +}
+        1
+
+Case(Fork xt yt).
+        size (Fork xt yt)
+    = {size.2}
+        size xt + size yt
+    = {induction hypothesis}
+        1 + nodes xt + 1 + nodes yt
+    = {arithmetic}
+        2 + nodes xt + nodes yt
+
+        1 + nodes (Fork xt yt)
+    = {nodes.2}
+        1 + 1 + nodes xt + nodes yt
+    = {arithmetic}
+        2 + nodes xt + nodes yt
+                                        ∎
+6.1.3) length (subtree xt) = 2*(size xt) - 1
+Proof by induction on xt.
+Case(Leaf x).
+        length (subtree (Leaf x))
+    = {subtree.1}
+        length [Leaf x]
+    = {length.2}
+        1 + length []
+    = {length.1, and arithmetic}
+        1
+
+        2*(size (Leaf x)) - 1
+    = {size.1}
+        2*1 - 1
+    = {arithmetic}
+        1
+
+Case(Fork xt yt). For the left-hand side we reason
+        length (subtree (Fork xt yt))
+    = {subtree.2}
+        length ([Fork xt yt] ++ subtree xt ++ subtree yt)
+    = {length (xs ++ ys) = length xs + length ys, as proved in exercise 4.2.5}
+        length [Fork xt yt] + length (subtree xt) + length (subtree yt))
+    = {length.2 and arithmetic}
+        1 + length (subtree xt) + length (subtree yt)
+    = {induction hypothesis}
+        1 + 2*(size xt) - 1 + 2*(size yt) - 1
+    = {arithmetic}
+        2*(size xt + size yt) - 1
+
+        For the right-hand side
+        2*(size (Fork xt yt)) - 1
+    = {size.2}
+        2*(size xt + size yt) - 1
+                                        ∎
+6.1.4) height xt < size xt
+Proof by induction on xt.
+Case(Leaf x).
+        height (Leaf x)
+    = {height.1}
+        0
+
+        size (Leaf x)
+    = {size.1}
+        1
+
+        0 < 1, establishing the case.
+
+Case(Fork xt yt). For the left-hand side we reason
+        height (Fork xt yt)
+    = {height.2}
+        1 + (height xt `max` height yt)
+    < {induction hypothesis}
+        1 + (size xt `max` size yt)
+
+        size (Fork xt yt)
+    = {size.2}
+        size xt + size yt
+
+        ???????? TODO ?????????
