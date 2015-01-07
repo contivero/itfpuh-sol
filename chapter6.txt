@@ -92,9 +92,189 @@ Case(Fork xt yt). For the left-hand side we reason
         1 + (height xt `max` height yt)
     < {induction hypothesis}
         1 + (size xt `max` size yt)
-
-        size (Fork xt yt)
-    = {size.2}
+    <= {arithmetic, and the fact that size zt >= 1, for all finite zt}
         size xt + size yt
+    = {size.2}
+        size (Fork xt yt)
+                                                                        ∎
 
-        ???????? TODO ?????????
+6.1.5)
+If a list xs of length 2^n is made into a minimal binary tree, the trees height
+would be n.  Let's suppose there is a binary tree for xs that divides the list
+not in the middle, the its' height would be:
+    1 + (height lefthalf `max` height righthalf)
+One of the halves' height is greater than log((2^n)/2) = n-1, meaning that the
+height of that half will be at least n, and the height of the whole tree will
+be at least (n+1), which is greater than the height of the single tree that
+divides the tree right in the middle and has height = ceil(log 2^n) = n.
+                                                                        ∎
+
+6.1.6) (n+) . heights = maxBtree . down n
+By the principle of extenstionality, this equals to proving:
+       (n+) . heights xt = maxBtree . down n xt
+
+Proof by induction on xt.
+Case(Leaf x).
+        (n+) (height (Leaf x))
+    = {height.1}
+        (n+) 0
+    = {arithmetic}
+        n
+
+        maxBtree (down n (Leaf x))
+    = {down.1}
+        maxBtree (Leaf n)
+    = {maxBtree.1}
+        n
+
+Case(Fork xt yt).
+        (n+) (height (Fork xt yt))
+    = {height.2}
+        (n+) (1 + (height xt `max` height yt))
+    = {arithmetic}
+        n + 1 + (height xt `max` height yt)
+
+        maxBtree (down n (Fork xt yt))
+    = {down.2}
+        maxBtree (Fork (down (n+1) xt) (down (n+1) yt))
+    = {maxBtree.2}
+        maxBtree (down (n+1) xt) `max` maxBtree (down (n+1) yt)
+    = {induction hypothesis}
+        ((n+1)+) (height xt) `max` ((n+1)+) (height yt)
+    = {arithmetic, since max (m + a) (m + b) = m + (max a b)}
+        n + 1 + (height xt `max` height yt)
+                                                                    ∎
+
+We now prove:
+    height = maxBtree . depths
+
+        height
+    = {0 is the unit of +}
+        0 + height
+    = {definition of (.)}
+        (0+) . height
+    = {proved result}
+        maxBtree . down 0
+    = {definition of depths}
+        maxBtree . depths
+
+6.2.1)
+In order to show that a proposition P(xt) holds for all binary trees xt, it is
+sufficient to show:
+
+Case(⊥). That P(⊥) holds;
+Case(Null). That P(Null) holds.
+Case(Fork xt x yt). That if both P(xt) and P(yt) hold, P(Fork xt x yt) holds as
+well, for all x.
+
+height xt <= size xt < 2^(height xt)
+
+We first prove the first inequality by induction on xt
+Case(Null).
+        height Null
+    = {height.1}
+        0 
+
+        size Null
+    = {size.1}
+        0
+
+Case(Fork xt x yt).
+        height (Fork xt x yt)
+    = {height.2}
+        1 + (height xt `max` height yt)
+   <= {induction hypothesis}
+        1 + (size xt `max` size yt)
+   <= {because size zt >= 0, for all finite zt}
+        1 + size xt + size yt
+    = {size.2}
+        size (Fork xt x yt)
+        
+We now prove the right inequality by induction on xt.
+Case(Null)
+        size Null
+    = {size.1}
+        0
+
+        2^(height Null)
+    = {height.1}
+        2^0
+    = {arithmetic}
+        1
+
+Case(Fork xt x yt).
+        size (Fork xt x yt)
+    = {size.2}
+        1 + size xt + size yt
+    < {induction hypothesis}
+        1 + 2^(height xt) + 2^(height yt)
+    ???? TODO ????
+
+n < 2^n
+Case 0.
+        0 < 2^0 = 1
+Case(n+1).
+        n+1
+   <= {n >= 1}
+        n+n
+    = {arithmetic}
+        2*n
+    < {induction hypothesis}
+        2*2^n
+    = {arithmetic}
+        2^(n+1)
+
+6.2.2)
+mapStree f Null = Null
+mapStree f (Fork xt x yt) = Fork (map f xt) (f x) (map f yt)
+
+6.2.3)
+foldStree :: (a -> b -> b) -> b -> (Stree a) -> b
+foldStree f z Null = z
+foldStree f z (Fork xt x yt) = f x (foldStree f z xt) (foldStree f z yt)
+
+6.2.4) inordered (insert x xt) = True
+Proof by induction on xt.
+Case(Null).
+        inordered (insert x Null)
+    = {insert.1}
+        inordered (Fork Null x Null)
+    = {definition of inordered}
+        ordered (flatten (Fork Null x Null))
+    = {flatten.2}
+        ordered (flatten Null ++ [x] ++ flatten Null)
+    = {flatten.1}
+        ordered ([] ++ [x] ++ [])
+    = {++.1, and equality proved in exercise 4.2.3}
+        ordered [x]
+    = {definition of ordered}
+        True
+
+Case(Fork xt y yt).
+        inordered (insert x (Fork xt y yt))
+    Case(x < y)
+    = {insert.2}
+        inordered (Fork (insert x xt) y yt)
+    = {definition of inordered}
+        ordered (flatten (Fork (insert x xt) y yt))
+    = {flatten.2}
+        ordered (flatten (insert x xt) ++ [y] ++ flatten yt)
+    = {by induction hypothesis the first part of the list is ordered,
+       and by definition of a binary search tree, so is the rest}
+        True
+
+    Case(x == y)
+    = {insert.2}
+        inordered (Fork xt y yt)
+    = {definition of inordered}
+        ordered (flatten (Fork xt y yt))
+    = {flatten.2}
+        ordered (flatten xt ++ [y] ++ flatten yt)
+    = {analogous reasoning to previous case, by definition of BST}
+        True
+        
+    Case(x > y)
+            Analogous reasoning to case x < y
+
+6.2.5) TODO
+6.2.6) TODO
