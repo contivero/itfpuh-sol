@@ -173,7 +173,7 @@ We first prove the first inequality by induction on xt
 Case(Null).
         height Null
     = {height.1}
-        0 
+        0
 
         size Null
     = {size.1}
@@ -189,7 +189,7 @@ Case(Fork xt x yt).
         1 + size xt + size yt
     = {size.2}
         size (Fork xt x yt)
-        
+
 We now prove the right inequality by induction on xt.
 Case(Null)
         size Null
@@ -272,9 +272,74 @@ Case(Fork xt y yt).
         ordered (flatten xt ++ [y] ++ flatten yt)
     = {analogous reasoning to previous case, by definition of BST}
         True
-        
+
     Case(x > y)
             Analogous reasoning to case x < y
 
-6.2.5) TODO
+6.2.5)
+join :: Stree a -> Stree a -> Stree a
+join Null yt           = yt
+join (Fork ut x vt) yt = Fork ut x (join vt yt)
+
+An example of the worst case scenario:
+   xt              yt          zt
+    1               3           1
+     \               \           \
+      2     join      4     =     2
+                       \           \
+                        5           3
+                                     \
+                                      4
+                                       \
+                                        5
+height xt = 1
+height yt = 2
+height (join xt yt) = height zt = 4
+
+It's easy to see the following inequalities hold:
+    height yt ≤ height (join xt yt) ≤ 1 + height yt + height xt
+
+
+join' :: (Ord a) => Stree a -> Stree a -> Stree a
+join' xt yt = if empty yt then xt else Fork xt headtree tailtree
+  where (headtree, tailtree) = splitTree yt
+
+An example:
+   xt                yt             zt
+    2                 5              4
+   / \               / \            / \
+  1   3     join'   4   6     =    2   5
+                                  / \   \
+                                 1   3   6
+height xt = 1
+height yt = 1
+height (join' xt yt) = height zt = 2
+
+It's easy to see the following inequalities hold:
+    height xt ≤ height (join xt yt) ≤ 1 + height xt `max` height yt
+
 6.2.6) TODO
+
+6.3.1)
+levels :: [a] -> [[a]]
+levels = levelsWith 1
+
+levelsWith :: Integral a => a -> [b] -> [[b]]
+levelsWith lvl xs = p : levelsWith (2*lvl) r
+  where (p,r) = splitAt lvl xs
+
+6.3.2)
+mkHtrees :: [[a]] -> [Htree a]
+mkHtrees = foldr addLayer [Null]
+
+addLayer :: [a] -> [Htree a] -> [Htree a]
+addLayer [] _               = []
+addLayer (x:xs) []          = Fork x Null Null : addLayer xs []
+addLayer (x:xs) [xt]        = Fork x xt Null : addLayer xs []
+addLayer (x:xs) (xt:yt:zts) = Fork x xt yt : addLayer xs zts
+
+6.3.3)
+mkHtree = head . mkHtrees . levels
+
+6.4.1)
+height xt ≤ size xt
