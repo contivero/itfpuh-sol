@@ -1,0 +1,159 @@
+7.1.1)
+Innermost reduction:
+        head [1..1000]
+    = {definition of ..}
+        head 1:[2..1000]
+            ...
+        head 1:2:3:...:1000:[]
+    = {definition of head}
+        1
+
+Outermost reduction:
+        head [1..1000]
+    = {definition of head}
+        1
+
+TODO finish the rest of the exercise.
+
+7.1.2)
+    sort = foldr insert []
+
+Lazy evaluation:
+        sort [3,4,2,1]
+    = {definition of sort}
+        foldr insert [] [3,4,2,1]
+    = {foldr.2}
+        insert 3 (foldr insert [] [4,2,1])
+    = {foldr.2}
+        insert 3 (insert 4 (foldr insert [] [2,1]))
+    = {foldr.2}
+        insert 3 (insert 4 (insert 2 (foldr insert [] [1])))
+    = {foldr.2}
+        insert 3 (insert 4 (insert 2 (insert 1 (foldr insert [] []))))
+    = {foldr.1}
+        insert 3 (insert 4 (insert 2 (insert 1 [])))
+    = {insert.1}
+        insert 3 (insert 4 (insert 2 (1:[])))
+    = {insert.2}
+        insert 3 (insert 4 (1 : insert 2 []))
+    = {insert.2}
+        insert 3 (1 : (insert 4 (insert 2 [])))
+    = {insert.2}
+        1 : (insert 3 (insert 4 (insert 2 [])))
+    = {insert.1}
+        1 : (insert 3 (insert 4 [2]))
+    = {insert.2}
+        1 : (insert 3 (2 : insert 4 []))
+    = {insert.2}
+        1:2:(insert 3 (insert 4 [])))
+    = {insert.1}
+        1:2:(insert 3 [4])
+    = {insert.2}
+        1:2:3:4:[]
+
+Eager evaluation:
+        sort [3,4,2,1]
+    = {definition of sort}
+        foldr insert [] [3,4,2,1]
+    = {foldr.2}
+        insert 3 (foldr insert [] [4,2,1])
+    = {foldr.2}
+        insert 3 (insert 4 (foldr insert [] [2,1]))
+    = {foldr.2}
+        insert 3 (insert 4 (insert 2 (foldr insert [] [1])))
+    = {foldr.2}
+        insert 3 (insert 4 (insert 2 (insert 1 (foldr insert [] []))))
+    = {foldr.1}
+        insert 3 (insert 4 (insert 2 (insert 1 [])))
+    = {insert.1}
+        insert 3 (insert 4 (insert 2 (1:[])))
+    = {insert.2}
+        insert 3 (insert 4 (1 : insert 2 []))
+    = {insert.1}
+        insert 3 (insert 4 (1:2:[]))
+    = {insert.2}
+        insert 3 (1 : insert 4 (2:[]))
+    = {insert.2}
+        insert 3 (1 : 2 : insert 4 [])
+    = {insert.1}
+        insert 3 (1:2:4:[])
+    = {insert.2}
+        1 : insert 3 (2:4:[])
+    = {insert.2}
+        1 : 2 : insert 3 (4:[])
+    = {insert.2}
+        1:2:3:4:[]
+
+7.1.3)
+minlist = head . sort
+
+With lazy evaluation, minlist is O(n), since all that is necessary is the head
+of the list which is found without the need to sort the tail.
+With eager evaluation, the tail is almost entirely sorted before the first
+element is found, making minlist of O(n^2).
+
+7.1.4)
+maxlist = last . sort
+TODO
+
+7.2.1)
+        f = O(g)
+  <=> {definition of Big O}
+        f(n) <= Cg(n) for all n >= n0
+  <=> {arithmetic, since C is positive}
+        f(n)*(1/C) <= g(n) for all n >= n0
+  <=> {definition of Ω, taking (1/C) as the constant}
+        g = Ω(f)
+
+7.2.2)
+O(1) denotes a constant, the precise value of which is not of interest.
+
+We prove both implications in the statement "f = O(1) iff f = Θ(1)":
+<=) Trivially valid by definition of Theta.
+=>) By hypothesis f = O(1), and we also have f = Ω(1), since f is given on the
+    natural numbers, and that's the smallest possible lower bound (every
+    function needs at least one step to compute).
+    Having both, i.e. f = O(1) and f = Ω(1), is precisely saying that f = Θ(1)
+
+7.2.3)
+        n^100 = O(2^n)
+  <=> {definition of Big O}
+        n^100 <= C*2^n for all n >= n0
+
+        ?? TODO ??
+
+7.2.4) TODO (see Concrete Mathematics, p55)
+
+7.2.5) To prove T(++) (m,n) = Θ(m), we use the following (++) definition:
+
+        [] ++ ys     = ys
+        (x:xs) ++ ys = x:(xs ++ ys)
+Then:
+
+        T(++)(0,n)   = Θ(1)
+        T(++)(m+1,n) = Θ(1) + T(++)(m,n)
+
+   ==>  T(++) (m,n) = (m+1) * Θ(1) = Θ(m+1) = Θ(m)
+                        │  
+                        └─ +1 since we start counting from 0
+
+7.2.6) k >= 2, and
+        T(0) = O(1)
+        T(n+1) = kT(n) + Θ(k^(n+1))
+
+Case(0)
+        T(0) = 1
+Case(n+1)
+        T(n+1)
+    = {hypothesis}
+        kT(n) + Θ(k^(n+1))
+    = {induction hypothesis}
+        kΘ(n*k^n)) + Θ(k^(n+1))
+    = {multiplication by a constant k}
+        Θ(n*k^(n+1)) + Θ(k^(n+1))
+    = {sum of two Thetas}
+        Θ(n*k^(n+1) + k^(n+1))
+    = {factorising}
+        Θ((n+1) * k^(n+1))
+                                    ∎
+If k = 1: TODO

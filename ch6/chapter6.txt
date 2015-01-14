@@ -343,3 +343,163 @@ mkHtree = head . mkHtrees . levels
 
 6.4.1)
 height xt ≤ size xt
+
+
+6.4.2)
+The program just freezes, printing only the immediate (finite) subtrees,
+and halts trying to calculate the (infinite) rest.
+An example is:
+    toB (Node 1 [Node 1 [Node n [] | n <- [1..]]])
+
+6.4.3)
+collect :: Btree a -> [Rose a] -> Btree a
+collect xb yts = toR (foldl Fork xb (map toB yts))
+
+Case([]).
+        collect xb []
+    = {definition of collect}
+        toR (foldl Fork xb (map toB []))
+    = {map.1}
+        toR (foldl Fork xb [])
+    = {foldl.1}
+        toR xb
+Case(x:xs).
+        collect xb (x:xs)
+    = {definition of collect}
+        toR (foldl Fork xb (map toB (x:xs)))
+    = {map.2}
+        toR (foldl Fork xb (toB x : map toB xs))
+    = {foldl.2}
+        toR (foldl Fork (Fork xb (toB x)) (map toB xs))
+
+        ??? TODO ???
+
+6.4.4
+    dfo :: [Rose a] -> [a]
+    dfo = concat . map flatten
+By the principle of extensionality, and function composition, we can prove
+that:
+    dfo xs = concat (map flatten xs)
+
+Case([])
+        concat (map flatten [])
+    = {map.1}
+        concat []
+    = {concat.1}
+        []
+
+Case(yt:yts)
+        concat (map flatten (yt:yts))
+    = {map.2}
+        concat (flatten yt : map flatten yts)
+    = {definition of concat}
+        foldr (++) [] (flatten yt : map flatten yts)
+    = {foldr.2}
+        (++) (flatten yt) (foldr (++) [] (map flatten yts))
+    = {infix notation, taking yt = (Node x xts)}
+        (flatten (Node x xts)) ++ (foldr (++) [] (map flatten yts))
+    = {definition of flatten}
+        (x : concat (map flatten xts)) ++ (foldr (++) [] (map flatten yts))
+    = {++.2}
+        x : (concat (map flatten xts) ++ (foldr (++) [] (map flatten yts)))
+    = {definition of concat}
+        x : (concat (map flatten xts) ++ (concat (map flatten yts)))
+    = {definition of dfo}
+        x : ((dfo xts) ++ (dfo yts))
+    = {claim: dfo t0s ++ dfo t1s = dfo (t0s ++ t1s)}
+        x : dfo (xts ++ yts)
+    = {[] is the unit of ++}
+        x : ([] ++ dfo (xts ++ yts)
+    = {definition of ++}
+        (x:[]) ++ dfo (xts ++ yts)
+    = {syntactic sugar}
+        [x] ++ dfo (xts ++ yts)
+
+We prove the claim used that:
+     dfo xts ++ dfo yts = dfo (xts ++ yts)
+By induction on xts
+
+Case([])
+        dfo [] ++ dfo yts
+    = {dfo [] = [], as already proved}
+        [] ++ dfo yts
+    = {++.1}
+        dfo yts
+
+        dfo ([] ++ yts)
+    = {++.1}
+        dfo yts
+
+Case(xt:xts)
+        dfo (xt:xts) ++ dfo yts
+    = {definition of dfo}
+        concat (map flatten (xt:xts)) ++ dfo yts
+    = {map.2}
+        concat (xt : map flatten xts) ++ dfo yts
+    = {definition of concat}
+        foldr (++) [] (flatten xt : map flatten xts) ++ dfo yts
+    = {foldr.2}
+        flatten xt ++ (foldr (++) [] (map flatten xts)) ++ dfo yts
+    = {definition of concat and dfo}
+        flatten xt ++ dfo xts ++ dfo yts
+    = {induction hypothesis}
+        flatten xt ++ dfo (xts ++ yts)
+
+        dfo ((xt:xts) ++ yts)
+    = {definition of dfo}
+        concat (map flatten ((xt:xts) ++ yts))
+    = {++.2}
+        concat (map flatten (xt:(xts ++ yts)))
+    = {map.2}
+        concat (flatten xt : map flatten (xts ++ yts))
+    = {definition of concat}
+        foldr (++) [] (flatten xt : map flatten (xts ++ yts))
+    = {foldr.2}
+        flatten xt ++ (foldr (++) [] (map flatten (xts ++ yts)))
+    = {definition of concat, and dfo}
+        flatten xt ++ dfo (xts ++ yts)
+                                                                ∎
+
+We can define flatten in terms of dfo as:
+    flatten (Node x xts) = x : dfo xts
+
+6.4.5)
+        bfo :: [Rose a] -> [a]
+        bfo = concat . combine . map levels
+
+Case([]).
+        concat (combine (map levels []))
+    = {map.1}
+        concat (combine [])
+    = {definition of combine}
+        concat (foldr f [] [])
+    = {foldr.1}
+        concat []
+    = {definition of concat}
+        foldr (++) [] []
+    = {foldr.1}
+        []
+
+Case(yt:yts)
+        concat (combine (map levels (yt:yts)))
+    = {map.2}
+        concat (combine (levels yt : map levels yts))
+    = {definition of combine}
+        concat (foldr f [] (levels yt : map levels yts))
+    = {foldr.2}
+        concat (f (levels yt) (foldr f [] (map levels yts)))
+    = {definition of levels, with yt = Node x xts}
+        concat (f ([x] : combine (map levels xts)) (foldr f [] (map levels yts)))
+    = {definition of combine}
+        concat (f ([x] : combine (map levels xts)) (combine (map levels yts)))
+
+        ?? TODO ??
+
+6.5.1)
+The Huffman code has the prefix property since otherwise there would be
+overlapping codifications (i.e. the decodification wouldn't be unique)
+
+6.5.2)
+    TODO
+6.5.3)
+    TODO
