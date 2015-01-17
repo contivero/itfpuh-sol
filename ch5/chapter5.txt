@@ -12,8 +12,7 @@ units = ["one", "two", "three", "four", "five",
          "six", "seven", "eight", "nine"]
 
 teens :: [String]
-teens = ["ten", "eleven", "twelve", "thirteen", "fourteen",
-         "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+teens = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
 
 tens :: [String]
 tens = ["twenty", "thirty", "forty", "fifty", "sixty",
@@ -88,3 +87,5 @@ convert12 x = if x >= 0
     TODO
 5.1.5)
     TODO
+
+
