@@ -89,3 +89,15 @@ convert12 x = if x >= 0
     TODO
 
 
+5.4.1) 
+      (365 * x + x `div` 4 - x `div` 100 + x `div` 400 + 1) `mod` 7
+  = {(a + b) mod n = [(a mod n) + (b mod n)] mod n; (a - b) mod n = [(a mod n) - (b mod n)] mod n}
+      ((365 * x) `mod` 7 + (x `div` 4) `mod` 7 - (x `div` 100) `mod` 7 + (x `div` 400) `mod` 7 + 1 `mod` 7) `mod` 7
+  = {(a*b) mod n = [(a mod n) * (b mod n)] mod n}
+      ((365 `mod` 7 * x `mod` 7) `mod` 7 + (x `div` 4) `mod` 7 - (x `div` 100) `mod` 7 + (x `div` 400) `mod` 7 + 1 `mod` 7) `mod` 7
+  = {365 mod 7 = 1, and 1 is the unit of (*)}
+      ((x `mod` 7) `mod` 7 + (x `div` 4) `mod` 7 - (x `div` 100) `mod` 7 + (x `div` 400) `mod` 7 + 1 `mod` 7) `mod` 7
+  = {(x mod n) mod n = x mod n}
+      (x `mod` 7 + (x `div` 4) `mod` 7 - (x `div` 100) `mod` 7 + (x `div` 400) `mod` 7 + 1 `mod` 7) `mod` 7
+  = {(a + b) mod n = [(a mod n) + (b mod n)] mod n; (a - b) mod n = [(a mod n) - (b mod n)] mod n}
+      (x + x `div` 4 - x `div` 100 + x `div` 400 + 1) `mod` 7
