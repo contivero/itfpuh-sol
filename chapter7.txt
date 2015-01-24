@@ -157,3 +157,32 @@ Case(n+1)
         Θ((n+1) * k^(n+1))
                                     ∎
 If k = 1: TODO
+
+7.3.1)
+digits n = if n < 10
+              then [n]
+              else digits (n `div` 10) ++ [n `mod` 10]
+
+digits' = accum []
+  where accum xs n = if n < 10
+                      then (n:xs)
+                      else accum ((n `mod` 10):xs) (n `div` 10)
+
+digits n  = O(n^2)
+digits' n = O(n)
+
+7.3.2)
+unfoldl :: (a -> Bool) -> (a -> (a,b)) -> a -> [b]
+unfoldl p f x = if p x
+                   then []
+                   else unfoldl p f y ++ [x]
+  where (y,z) = f x
+
+unfoldl' :: (a -> Bool) -> (a -> (a,b)) -> a -> [b]
+unfoldl' p f = accum p f []
+
+accum :: (a -> Bool) -> (a -> (a,b)) -> [b] -> a -> [b]
+accum p f xs x = if p x
+                    then xs
+                    else accum p f (z:xs) y
+  where (y,z) = f x

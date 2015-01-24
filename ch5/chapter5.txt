@@ -89,7 +89,7 @@ convert12 x = if x >= 0
     TODO
 
 
-5.4.1) 
+5.4.1)
       (365 * x + x `div` 4 - x `div` 100 + x `div` 400 + 1) `mod` 7
   = {(a + b) mod n = [(a mod n) + (b mod n)] mod n; (a - b) mod n = [(a mod n) - (b mod n)] mod n}
       ((365 * x) `mod` 7 + (x `div` 4) `mod` 7 - (x `div` 100) `mod` 7 + (x `div` 400) `mod` 7 + 1 `mod` 7) `mod` 7
@@ -101,3 +101,37 @@ convert12 x = if x >= 0
       (x `mod` 7 + (x `div` 4) `mod` 7 - (x `div` 100) `mod` 7 + (x `div` 400) `mod` 7 + 1 `mod` 7) `mod` 7
   = {(a + b) mod n = [(a mod n) + (b mod n)] mod n; (a - b) mod n = [(a mod n) - (b mod n)] mod n}
       (x + x `div` 4 - x `div` 100 + x `div` 400 + 1) `mod` 7
+
+5.5.1) unlines . lines = id
+By the principle of extensionality, this is the same as proving that:
+        (unlines . lines) xs = id xs
+Proof by induction on xs.
+
+Case([]).
+        unlines (lines [])
+    = {definition of lines and span}
+        unlines [""]
+    = {definition of unlines}
+        foldr1 (f) [""] where ys `f` zs = ys ++ '\n' ++ zs
+    = {foldr1.1}
+        ""
+    = {"" = [] :: String}
+        []
+
+        id []
+    = {definition of id}
+        []
+
+Case(x:xs).
+    Case (xs not null, x /= '\n', )
+        unlines (lines (x:xs))
+    = {definition of lines}
+        unlines (ys : lines (tail zs))
+    = {ys = x:ys'}
+        unlines (x:ys':lines (tail zs))
+    = {definition of unlines}
+        foldr1 f (x:ys':lines (tail zs))
+    = {foldr1.3}
+        (x:ys') ++ '\n' ++ (foldr1 f (lines (tail zs)))
+
+        TODO
