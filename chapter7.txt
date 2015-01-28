@@ -186,3 +186,43 @@ accum p f xs x = if p x
                     then xs
                     else accum p f (z:xs) y
   where (y,z) = f x
+
+7.4.4)
+        best . map (us:) = (us:) . best
+By the principle of extensionality, it's the same to prove that:
+       (best . map (us:)) xs = ((us:) . best) xs
+Proof by induction on xs.
+Case([x])
+        best (map (us:) [x])
+    = {map.2}
+        best ((us:x) : map (us:) [])
+    = {map.1}
+        best (us:x:[])
+    = {definition of best}
+        foldl1 better (us:x:[])
+    = {foldl1.2}
+        foldl better us [x]
+    = {foldl.2}
+        foldl better (better us x) []
+    = {foldl.1}
+        better us x
+
+        us : best [x]
+    = {definition of best}
+        us : foldl1 better [x]
+    = {foldl1.2}
+        us : foldl better x []
+    = {foldl.1}
+        us : x
+        ?? TODO ??
+
+7.5.1)
+    TODO
+7.5.2)
+minlist = foldl1' min
+
+Compare that definition with minlist = foldl1 min, by doing in ghci:
+    minlist [1..500000000]
+The first one finishes fast, the second one takes quite some time, and might
+even give a stack overflow exception.
+
