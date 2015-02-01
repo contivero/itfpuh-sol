@@ -11,8 +11,8 @@ data Nat = Zero | Succ Nat
     deriving(Eq, Show)
 
 minus :: Nat -> Nat -> Nat
-m `minus` Zero = m
-Zero `minus` (Succ a) = Zero
+m `minus` Zero            = m
+Zero `minus` (Succ _)     = Zero
 (Succ m) `minus` (Succ n) = m `minus` n
 
 type List a = (Nat -> a, Nat)
@@ -25,26 +25,24 @@ nullc :: (List a) -> Bool
 nullc (_, n) = n == Zero
 
 consc :: a -> List a -> List a
-consc x (f, n) = (f, )
+consc x (f, n) = (g, Succ n)
+  where g k = if k == Zero
+                 then x
+                 else f (k `minus` one)
 
+one :: Nat
+one = Succ Zero
 
+headc :: List a -> a
+headc (f, _) = f Zero
 
+tailc :: List a -> List a
+tailc (f, n) = (g, n `minus` one)
+  where g k = f (Succ k)
 
-consc :: a -> List a -> List a
-consc x (f, l) = (g, Succ l)
-where g k = if k == Zero then x else f (k `minus` one)
-one = (Succ Zero)
-
-    headc :: List a -> a
-    headc (f, l) = f Zero
-
-    tailc :: List a -> List a
-    tailc (f, l) = (g, (l `minus` one))
-    where g k = f (Succ k)
-one = (Succ Zero)
-
-
-    abstr :: (Nat -> a, Nat) -> [a]
-    abstr (f, Zero)   = [] g
-    abstr (f, Succ l) = (f Zero) : (abstr (g, l))
-                                    where g k = f (Succ k)
+abstr :: (Nat -> a, Nat) -> [a]
+abstr (f, Zero)   = []
+abstr (f, n)      = go Zero
+  where go k = if k == n
+                   then [f k]
+                   else f k : go (Succ k)
